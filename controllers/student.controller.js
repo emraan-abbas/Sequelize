@@ -1,6 +1,8 @@
+const { course_teacher } = require('../config/db.config');
 const db = require('../config/db.config');
 const Student = db.student;
 const Course_Student = db.course_student;
+const Course_Teacher = db.course_teacher;
 const course = db.course;
 const teacher = db.teacher;
 
@@ -26,11 +28,28 @@ exports.findAll = async (req, res) => {
 	try {
 		const student = await Student.findAll({
 			attributes: ['studentName', 'class'],
+			attributes: { exclude: ['id'] },
 			include: [
 				{
 					model: course,
+					//
+					through: {
+						attributes: [],
+					},
+					//
 					attributes: ['courseName'],
-					include: [{ model: teacher, attributes: ['teacherName'] }],
+					attributes: { exclude: ['course_teacher', 'id'] },
+					include: [
+						{
+							model: teacher,
+							//
+							through: {
+								attributes: [],
+							},
+							//
+							attributes: ['teacherName'],
+						},
+					],
 				},
 			],
 		});
@@ -50,7 +69,25 @@ exports.findById = async (req, res) => {
 	try {
 		await Student.findAll({
 			where: { id: req.params.id },
-			include: [{ model: course, include: [{ model: teacher }] }],
+			attributes: { exclude: ['id'] },
+			include: [
+				{
+					model: course,
+					attributes: { exclude: ['id'] },
+					through: {
+						attributes: [],
+					},
+					include: [
+						{
+							model: teacher,
+							attributes: { exclude: ['id'] },
+							through: {
+								attributes: [],
+							},
+						},
+					],
+				},
+			],
 		}).then((student) => res.json(student));
 	} catch (error) {
 		res.status(500).send({

@@ -36,7 +36,16 @@ exports.findById = async (req, res) => {
 	try {
 		await Course.findAll({
 			where: { id: req.params.id },
-			include: [{ model: student }],
+			attributes: { exclude: ['id'] },
+			include: [
+				{
+					model: student,
+					attributes: { exclude: ['id'] },
+					through: {
+						attributes: [],
+					},
+				},
+			],
 		}).then((course) => res.json(course));
 	} catch (error) {
 		res.status(500).send({
